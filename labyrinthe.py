@@ -3,11 +3,14 @@
 import labyrinthe
 import random
 import robot
+import string
 """Ce module contient la classe Labyrinthe."""
 
 WALL = "O"
 EXIT = "U"
 DOOR = "."
+ALPHABET = set(string.ascii_uppercase)
+USED_SYMBOLS = {WALL, EXIT, DOOR}
 
 
 def creer_labyrinthe_depuis_chaine(chaine):
@@ -32,11 +35,12 @@ class Labyrinthe:
     def __init__(self, grille):
         self.robots = []
         self.grille = grille
+        self.available_symbols = ALPHABET - USED_SYMBOLS
 
     def __str__(self):
         lines = [list(l) for l in self.grille]
         for rbt in self.robots:
-            lines[rbt.x][rbt.y] = 'X'
+            lines[rbt.x][rbt.y] = rbt.symbol
         lines = ["".join(line) for line in lines]
         return "\n".join(lines)
 
@@ -64,4 +68,6 @@ class Labyrinthe:
             x = random.randint(0, len(self.grille) - 1)
             y = random.randint(0, len(self.grille[0]) - 1)
 
-        self.robots.append(robot.Robot(x, y))
+        symbol = random.sample(self.available_symbols, 1)[0]
+        self.available_symbols.remove(symbol)
+        self.robots.append(robot.Robot(x, y, symbol))

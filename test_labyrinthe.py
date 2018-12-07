@@ -23,6 +23,8 @@ O O O    U"""
 
     def test_addRobot(self):
         self.labyrinthe.addRobot()
+        self.labyrinthe.addRobot()
+        print(f"{self.labyrinthe}")
         self.assertTrue(self.labyrinthe.robots)
 
     def test_moveUP(self):

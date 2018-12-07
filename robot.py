@@ -5,9 +5,10 @@
 class Robot:
     """Classe representant un robot"""
 
-    def __init__(self, x, y):
+    def __init__(self, x, y, symbol):
         self.x = x
         self.y = y
+        self.symbol = symbol
         self.x.__repr__
 
     def moveUp(self):
