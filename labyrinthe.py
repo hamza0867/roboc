@@ -1,0 +1,67 @@
+# -*-coding:Utf-8 -*
+
+import labyrinthe
+import random
+import robot
+"""Ce module contient la classe Labyrinthe."""
+
+WALL = "O"
+EXIT = "U"
+DOOR = "."
+
+
+def creer_labyrinthe_depuis_chaine(chaine):
+
+    # we use split to get the lines of the maze
+    # then we use list(string) to convert the string into a list of string
+    # But the maze itself should be immutable, the maze doesn't change, so
+    # we convert our list of lists of chars into a tuple of tuple of chars
+    # to make sure our maze is immutable
+
+    lines = chaine.split("\n")
+    grille = [list(line) for line in lines]
+    list_of_tuples = [tuple(l) for l in grille]
+    tuple_of_tuples = tuple(list_of_tuples)
+
+    return labyrinthe.Labyrinthe(tuple_of_tuples)
+
+
+class Labyrinthe:
+    """Classe représentant un labyrinthe."""
+
+    def __init__(self, grille):
+        self.robots = []
+        self.grille = grille
+
+    def __str__(self):
+        lines = [list(l) for l in self.grille]
+        for rbt in self.robots:
+            lines[rbt.x][rbt.y] = 'X'
+        lines = ["".join(line) for line in lines]
+        return "\n".join(lines)
+
+    def moveUp(self, robot):
+        if self.grille[robot.x - 1][robot.y] is not WALL:
+            robot.moveUp()
+
+    def moveDown(self, robot):
+        if self.grille[robot.x + 1][robot.y] is not WALL:
+            robot.moveDown()
+
+    def moveLeft(self, robot):
+        if self.grille[robot.x][robot.y - 1] is not WALL:
+            robot.moveLeft()
+
+    def moveRight(self, robot):
+        if self.grille[robot.x][robot.y + 1] is not WALL:
+            robot.moveRight()
+
+    def addRobot(self):
+        x = random.randint(0, len(self.grille) - 1)
+        y = random.randint(0, len(self.grille[0]) - 1)
+
+        while(self.grille[x][y] is WALL):
+            x = random.randint(0, len(self.grille) - 1)
+            y = random.randint(0, len(self.grille[0]) - 1)
+
+        self.robots.append(robot.Robot(x, y))
