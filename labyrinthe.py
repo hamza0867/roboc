@@ -44,6 +44,13 @@ class Labyrinthe:
         lines = ["".join(line) for line in lines]
         return "\n".join(lines)
 
+    def __grilleTupleToList__(self):
+        """returns the grille in a list format"""
+        return [list(l) for l in self.grille]
+
+    def __listToTuple__(self, lst):
+        return tuple(tuple(l) for l in lst)
+
     def moveUp(self, robot):
         if self.grille[robot.x - 1][robot.y] is not WALL:
             robot.moveUp()
@@ -71,3 +78,20 @@ class Labyrinthe:
         symbol = random.sample(self.available_symbols, 1)[0]
         self.available_symbols.remove(symbol)
         self.robots.append(robot.Robot(x, y, symbol))
+
+    def __addRobotWithCoords__(self, x, y):
+        """This methode was written to facilitate tests, not supposed
+        to be used in the actual game"""
+        self.robots.append(robot.Robot(x, y, 'X'))
+
+    def wallUp(self, robot):
+        if self.grille[robot.x - 1][robot.y] is DOOR:
+            grille_list = self.__grilleTupleToList__()
+            grille_list[robot.x - 1][robot.y] = WALL
+            self.grille = self.__listToTuple__(grille_list)
+
+    def wallDown(self, robot):
+        if self.grille[robot.x + 1][robot.y] is DOOR:
+            grille_list = self.__grilleTupleToList__()
+            grille_list[robot.x + 1][robot.y] = WALL
+            self.grille = self.__listToTuple__(grille_list)

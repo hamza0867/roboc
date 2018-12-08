@@ -24,8 +24,7 @@ O O O    U"""
     def test_addRobot(self):
         self.labyrinthe.addRobot()
         self.labyrinthe.addRobot()
-        print(f"{self.labyrinthe}")
-        self.assertTrue(self.labyrinthe.robots)
+        self.assertEqual(2, len(self.labyrinthe.robots))
 
     def test_moveUP(self):
         self.labyrinthe.addRobot()
@@ -36,3 +35,9 @@ O O O    U"""
             self.assertEqual(old_x - 1, self.labyrinthe.robots[0].x)
         else:
             print("test_moveUP failed because the robot can't move up")
+
+    def test_wallUp(self):
+        self.labyrinthe.__addRobotWithCoords__(5, 8)
+        self.labyrinthe.wallUp(self.labyrinthe.robots[0])
+        print(f"{self.labyrinthe}")
+        self.assertEqual(self.labyrinthe.grille[4][8], labyrinthe.WALL)
