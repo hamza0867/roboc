@@ -95,3 +95,21 @@ class Labyrinthe:
             grille_list = self.__grilleTupleToList__()
             grille_list[robot.x + 1][robot.y] = WALL
             self.grille = self.__listToTuple__(grille_list)
+
+    def wallRight(self, robot):
+        if self.grille[robot.x][robot.y + 1] is DOOR:
+            grille_list = self.__grilleTupleToList__()
+            grille_list[robot.x][robot.y + 1] = WALL
+            self.grille = self.__listToTuple__(grille_list)
+
+    def wallLeft(self, robot):
+        if self.grille[robot.x][robot.y - 1] is DOOR:
+            grille_list = self.__grilleTupleToList__()
+            grille_list[robot.x][robot.y - 1] = WALL
+            self.grille = self.__listToTuple__(grille_list)
+
+    def doorUp(self, robot):
+        if self.grille[robot.x - 1][robot.y] is WALL:
+            grille_list = self.__grilleTupleToList__()
+            grille_list[robot.x - 1][robot.y] = DOOR
+            self.grille = self.__listToTuple__(grille_list)

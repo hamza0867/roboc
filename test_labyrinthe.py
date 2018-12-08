@@ -39,5 +39,10 @@ O O O    U"""
     def test_wallUp(self):
         self.labyrinthe.__addRobotWithCoords__(5, 8)
         self.labyrinthe.wallUp(self.labyrinthe.robots[0])
-        print(f"{self.labyrinthe}")
         self.assertEqual(self.labyrinthe.grille[4][8], labyrinthe.WALL)
+
+    def test_doorUp(self):
+        self.labyrinthe.__addRobotWithCoords__(5, 7)
+        self.labyrinthe.doorUp(self.labyrinthe.robots[0])
+        print(f"{self.labyrinthe}")
+        self.assertEqual(labyrinthe.DOOR, self.labyrinthe.grille[4][7])
