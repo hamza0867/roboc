@@ -1,9 +1,10 @@
+import enum
 import os
 import re
-import select
 import socket
 
 import carte
+import labyrinthe
 
 
 def load_game():
@@ -24,72 +25,100 @@ def load_game():
     for i, carte_ in enumerate(cartes):
         print("  {} - {}".format(i + 1, carte_.nom))
 
-    # ... Complétez le programme ...
     maze = cartes[
         int(input("Entrez un numero de labyrinthe pour commencer a jouer : "))
         - 1].labyrinthe
 
-
-def start_server():
-    hote = ""
-    port = 12800
-
-    connexion_principale = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    connexion_principale.bind((hote, port))
-    connexion_principale.listen(5)
-    print("Le serveur écoute à présent sur le port {}".format(port))
-
-    serveur_lance = True
-    clients_connectes = []
-
-    while serveur_lance:
-        # On va vérifier que de nouveaux clients ne demandent pas à se connecter
-        # Pour cela, on écoute la connexion_principale en lecture
-        # On attend maximum 50ms
-        connexions_demandees, wlist, xlist = select.select([connexion_principale],
-                                                           [], [], 0.05)
-
-        for connexion in connexions_demandees:
-            connexion_avec_client, infos_connexion = connexion.accept()
-            # On ajoute le socket connecté à la liste des clients
-            clients_connectes.append(connexion_avec_client)
-
-        # Maintenant, on écoute la liste des clients connectés
-        # Les clients renvoyés par select sont ceux devant être lus (recv)
-        # On attend là encore 50ms maximum
-        # On enferme l'appel à select.select dans un bloc try
-        # En effet, si la liste de clients connectés est vide, une exception
-        # Peut être levée
-        clients_a_lire = []
-        try:
-            clients_a_lire, wlist, xlist = select.select(clients_connectes, [], [],
-                                                         0.05)
-        except select.error:
-            pass
-        else:
-            # On parcourt la liste des clients à lire
-
-            for client in clients_a_lire:
-                # Client est de type socket
-            msg_recu = client.recv(1024)
-            # Peut planter si le message contient des caractères spéciaux
-            msg_recu = msg_recu.decode()
-            execute_commade
-
-            if msg_recu == "fin":
-                stop_server()
+    return maze
 
 
-def execute_commade(robot, commade):
-    pass
+def start_Server():
+    HOST = "127.0.0.1"
+    PORT = 12800
+    maze = load_game()
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind((HOST, PORT))
+        s.listen()
+        conn, addr = s.accept()
+        maze.addRobot()
+        with conn:
+            player = 0
+            print(f"Connected by {addr}")
+
+            while True:
+                print(f"{maze}")
+                conn.send(maze.__str__().encode())
+                commande = conn.recv(1024).decode()
+
+                if execute_commande(commande, maze,
+                                    player) is ServerCommande.STOP_SERVER:
+                    conn.send(b"Game Over")
+                    return
+                player = (player + 1) % len(maze.robots)
 
 
-def stop_server():
-    serveur_lance = False
-    print("Fermeture des connexions")
+def execute_commande(commande, maze, player):
 
-    for client in clients_connectes:
-        client.close()
+    movement_expression = r"^[nesoNSEO][1-9]?[0-9]*$"
+    building_expression = r"^[mpMP][nseoNSEO]$"
+    robot = maze.robots[player]
+
+    if re.match(movement_expression, commande):
+        return execute_movement_commade(commande, maze, robot)
+
+    elif re.match(building_expression, commande):
+        execute_building_commande(commande, maze, robot)
+    elif commande in "Qq":
+        # print(f"Merci pour avoir jouer a notre jeu")
+        maze.robots.remove(robot)
+        return ServerCommande.STOP_SERVER
 
 
-connexion_principale.close()
+# Helper functions #
+
+
+class ServerCommande(enum.Enum):
+    STOP_SERVER = enum.auto
+
+
+def execute_movement_commade(commande, maze, robot):
+    for i in range(0, int("".join(commande[1:])) if len(commande) > 1 else 1):
+
+        if commande[0] == "n" or commande[0] == "N":
+            maze.moveUp(robot)
+        elif commande[0] == "s" or commande[0] == "S":
+            maze.moveDown(robot)
+        elif commande[0] == "o" or commande[0] == "O":
+            maze.moveLeft(robot)
+        elif commande[0] == "e" or commande[0] == "E":
+            maze.moveRight(robot)
+
+        if maze.grille[robot.x][robot.y] is labyrinthe.EXIT:
+            print(f"Bravo joueur  vous avez gagne la partie")
+            return ServerCommande.STOP_SERVER
+
+
+def execute_building_commande(commande, maze, robot):
+
+    if commande[0] in "mM":
+        if commande[1] in "nN":
+            maze.wallUp(robot)
+        elif commande[1] in "sS":
+            maze.wallDown(robot)
+        elif commande[1] in "eE":
+            maze.wallRight(robot)
+        elif commande[1] in "oO":
+            maze.wallLeft(robot)
+    elif commande[0] in "pP":
+        if commande[1] in "nN":
+            maze.doorUp(robot)
+        elif commande[1] in "sS":
+            maze.doorDown(robot)
+        elif commande[1] in "eE":
+            maze.doorRight(robot)
+        elif commande[1] in "oO":
+            maze.doorLeft(robot)
+
+
+if __name__ == "__main__":
+    start_Server()
