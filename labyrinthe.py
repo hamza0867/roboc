@@ -68,12 +68,12 @@ class Labyrinthe:
             robot.moveRight()
 
     def addRobot(self):
-        x = random.randint(0, len(self.grille) - 1)
-        y = random.randint(0, len(self.grille[0]) - 1)
+        x = random.randint(1, len(self.grille) - 2)
+        y = random.randint(1, len(self.grille[0]) - 2)
 
         while(self.grille[x][y] is WALL):
-            x = random.randint(0, len(self.grille) - 1)
-            y = random.randint(0, len(self.grille[0]) - 1)
+            x = random.randint(1, len(self.grille) - 2)
+            y = random.randint(1, len(self.grille[0]) - 2)
 
         symbol = random.sample(self.available_symbols, 1)[0]
         self.available_symbols.remove(symbol)

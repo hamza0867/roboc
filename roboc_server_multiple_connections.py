@@ -1,10 +1,13 @@
 import enum
 import os
 import re
+import select
 import socket
+import sys
 
 import carte
 import labyrinthe
+import my_socket
 
 
 def load_game():
@@ -39,20 +42,44 @@ def start_Server():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind((HOST, PORT))
         s.listen()
-        conn, addr = s.accept()
+        s.setblocking(False)
+        clients = []
+
+        while len(clients) < 2:
+            clients.extend(connect_clients(s, maze))
+
+        while True:
+            for conn in clients:
+
+                if handle_player(conn, maze,
+                                 conn.number) is ServerCommande.STOP_SERVER:
+                    stop_server(clients, s)
+
+
+def connect_clients(server_socket, maze):
+    connected_clients = []
+    clients, _, _ = select.select([server_socket], [], [], 0.05)
+    player = len(maze.robots)
+
+    for client in clients:
+        conn, _ = client.accept()
         maze.addRobot()
-        with conn:
-            player = 0
+        connected_clients.append(my_socket.ClientSocket(conn, player))
+        message = f"client connected, the symbol is \
+                {maze.robots[player].symbol} the number is \
+                {player}"
+        conn.send(message.encode())
+        player += 1
 
-            while True:
-                conn.send(maze.__str__().encode())
-                commande = conn.recv(1024).decode()
+    return connected_clients
 
-                if execute_commande(commande, maze,
-                                    player) is ServerCommande.STOP_SERVER:
-                    conn.send(b"Game Over")
-                    return
-                player = (player + 1) % len(maze.robots)
+
+def handle_player(conn, maze, player):
+    conn.send(maze.__str__().encode())
+    commande = conn.recv(1024).decode()
+
+    if execute_commande(commande, maze, player) is ServerCommande.STOP_SERVER:
+        return ServerCommande.STOP_SERVER
 
 
 def execute_commande(commande, maze, player):
@@ -69,6 +96,7 @@ def execute_commande(commande, maze, player):
     elif commande in "Qq":
         # print(f"Merci pour avoir jouer a notre jeu")
         maze.robots.remove(robot)
+
         return ServerCommande.STOP_SERVER
 
 
@@ -92,7 +120,6 @@ def execute_movement_commade(commande, maze, robot):
             maze.moveRight(robot)
 
         if maze.grille[robot.x][robot.y] is labyrinthe.EXIT:
-            print(f"Bravo joueur  vous avez gagne la partie")
             return ServerCommande.STOP_SERVER
 
 
@@ -116,6 +143,14 @@ def execute_building_commande(commande, maze, robot):
             maze.doorRight(robot)
         elif commande[1] in "oO":
             maze.doorLeft(robot)
+
+
+def stop_server(clients, sock_server):
+    for client in clients:
+        client.send(b"Game Over")
+        client.close()
+    sock_server.close()
+    sys.exit(0)
 
 
 if __name__ == "__main__":

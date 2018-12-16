@@ -9,7 +9,6 @@ class Robot:
         self.x = x
         self.y = y
         self.symbol = symbol
-        self.x.__repr__
 
     def moveUp(self):
         self.x -= 1
