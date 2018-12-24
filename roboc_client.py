@@ -32,13 +32,9 @@ def start_client():
 
 
 def handle_message(message, socket):
-    if message.message_type in {
-            my_message.MessageType.INFO,
-            my_message.MessageType.MAZE,
-    }:
-        print(message.string_message)
-    elif message.message_type is my_message.MessageType.PLAY:
-        print("PLAY message made it")
+    print(message.string_message)
+
+    if message.message_type is my_message.MessageType.PLAY:
         commande = input("\n> ")
 
         while not re.match(commande_expression, commande):
